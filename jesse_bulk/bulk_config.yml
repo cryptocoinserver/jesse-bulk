@@ -1,5 +1,5 @@
 # syntax: training.win_rate or testing.total
-sort_by: 'training.serenity_index'
+sort_by: 'training.win_rate'
 
 filter_dna:
   training:
