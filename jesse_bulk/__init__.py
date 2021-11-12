@@ -10,6 +10,8 @@ import pandas as pd
 import pkg_resources
 import yaml
 import datetime
+from jesse.research import backtest, get_candles
+import jesse.helpers as jh
 
 # create a Click group
 @click.group()
@@ -42,9 +44,8 @@ def pick(csv_path: str) -> None:
 def refine(strategy_name: str, csv_path: str) -> None:
     validate_cwd()
 
-    import jesse.helpers as jh
-
     dna_df = pd.read_csv(csv_path, encoding='utf-8')
+    dna_df.info()
     cfg = get_config()
 
     StrategyClass = jh.get_strategy_class(strategy_name)
@@ -120,7 +121,6 @@ def refine(strategy_name: str, csv_path: str) -> None:
 @click.argument('strategy_name', required=True, type=str)
 def bulk(strategy_name: str) -> None:
     validate_cwd()
-
     cfg = get_config()
 
     config = {
@@ -203,8 +203,6 @@ def get_candles_with_cache(exchange: str, symbol: str, timeframe: str, start_dat
     path = pathlib.Path('storage/bulk')
     path.mkdir(parents=True, exist_ok=True)
 
-    from jesse.research import get_candles
-
     cache_file_name = f"{exchange}-{symbol}-{timeframe}-{start_date}-{finish_date}.pickle"
     cache_file = pathlib.Path(f'storage/bulk/{cache_file_name}')
 
@@ -220,9 +218,6 @@ def get_candles_with_cache(exchange: str, symbol: str, timeframe: str, start_dat
 
 
 def backtest_with_info_key(key, config, route, extra_routes, candles, hp_dict, dna):
-    from jesse.research import backtest
-    import jesse.helpers as jh
-
     hp = jh.dna_to_hp(hp_dict, dna) if dna else None
     backtest_data = backtest(config, route, extra_routes, candles, True, hp)
 
