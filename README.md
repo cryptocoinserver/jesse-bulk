@@ -24,7 +24,15 @@ pip install git+https://github.com/cryptocoinserver/jesse-bulk.git
 jesse-bulk create-config
 
 # edit the create yml file in your project directory 
-jesse-bulk run StrategyName Optimization.csv
+
+# pick / filter optimization csv
+jesse-bulk pick Optimization.csv
+
+# refine bulk backtest with DNAs to csv
+jesse-bulk refine StrategyName Optimization.csv
+
+# bulk backtest to csv
+jesse-bulk bulk StrategyName 
 
 ```
 
