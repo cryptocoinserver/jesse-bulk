@@ -44,6 +44,7 @@ def refine(strategy_name: str, csv_path: str) -> None:
 
     import jesse.helpers as jh
 
+    dna_df = pd.read_csv(csv_path, encoding='utf-8')
     cfg = get_config()
 
     StrategyClass = jh.get_strategy_class(strategy_name)
