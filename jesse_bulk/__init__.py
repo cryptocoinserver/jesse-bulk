@@ -118,7 +118,6 @@ def refine(strategy_name: str, csv_path: str) -> None:
 
 @cli.command()
 @click.argument('strategy_name', required=True, type=str)
-@click.argument('csv_path', required=True, type=str)
 def bulk(strategy_name: str) -> None:
     validate_cwd()
 
