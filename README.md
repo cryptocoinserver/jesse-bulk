@@ -10,7 +10,7 @@ Currently no progress bar is shown during backtesting. Just trust the process.
 
 You will find the results in a csv in your project folder. 
 
-Uses multiprocessing.
+Uses multiprocessing. Uses pickle cache for candles. You might want to clear `storage/bulk` if you use it a lot and run out of space.
 
 # Installation
 
