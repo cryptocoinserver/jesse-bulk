@@ -199,6 +199,9 @@ def bulk(strategy_name: str) -> None:
         except (KeyboardInterrupt, SystemExit):
             pool.terminate()
             pool.join()
+        else:
+            pool.close()
+            pool.join()
 
 
 
