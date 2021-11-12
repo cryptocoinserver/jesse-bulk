@@ -1,8 +1,13 @@
 # Jesse bulk backtest
 
+`jesse-bulk pick`
 Loads a CSV you got from Jesse's optimization. Removes duplicates and filteres it according to your config.
 
-Then runs all backtests according to your configuration with the DNAs and creates a CSV containing all metrics of the backtests.
+`jesse-bulk refine`
+Runs all backtests according to your configuration (symbols, timeframes, start & finish-dates) with the DNAs from the CSV and creates a CSV containing all metrics of the backtests.
+
+`jesse-bulk bulk`
+Runs all backtests according to your configuration (symbols, timeframes, start & finish-dates) and creates a CSV containing all metrics of the backtests.
 
 Only works with the dashboard version / branch of jesse.
 
@@ -22,18 +27,18 @@ pip install git+https://github.com/cryptocoinserver/jesse-bulk.git
 
 # cd in your Jesse project directory
 
-# create config file
+# create the config file
 jesse-bulk create-config
 
-# edit the create yml file in your project directory 
+# edit the created yml file in your project directory 
 
 # pick / filter optimization csv
 jesse-bulk pick Optimization.csv
 
-# refine bulk backtest with DNAs to csv
+# refine bulk backtests with DNAs
 jesse-bulk refine StrategyName Optimization.csv
 
-# bulk backtest to csv
+# bulk backtests
 jesse-bulk bulk StrategyName 
 
 ```
