@@ -35,7 +35,7 @@ def pick(csv_path: str) -> None:
 
     cfg = get_config()
 
-    dna_df = filter_and_sort_dna_df(csv_path, cfg)
+    filter_and_sort_dna_df(csv_path, cfg)
 
 
 @cli.command()
@@ -44,8 +44,11 @@ def pick(csv_path: str) -> None:
 def refine(strategy_name: str, csv_path: str) -> None:
     validate_cwd()
 
-    dna_df = pd.read_csv(csv_path, encoding='utf-8')
-    dna_df.info()
+    dna_df = pd.read_csv(csv_path, encoding='utf-8', sep='\t')
+
+    if 'dna' not in dna_df:
+        dna_df = pd.read_csv(csv_path, encoding='utf-8')
+
     cfg = get_config()
 
     StrategyClass = jh.get_strategy_class(strategy_name)
@@ -182,9 +185,9 @@ def bulk(strategy_name: str) -> None:
 
     results_df = pd.DataFrame.from_dict(results, orient='columns')
 
-    dt = datetime.now().strftime("%Y-%m-%d %H-%M-%S.%f")
+    dt = datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S.%f")
 
-    results_df.to_csv(f'bulk_{dt}.csv', header=True, index=False, encoding='utf-8', sep='\t')
+    results_df.to_csv(f'{strategy_name}_bulk_{dt}.csv', header=True, index=False, encoding='utf-8', sep='\t')
 
 
 def validate_cwd() -> None:

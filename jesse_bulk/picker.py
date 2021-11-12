@@ -2,7 +2,11 @@ import pandas as pd
 import pathlib
 
 def filter_and_sort_dna_df(csv_path : str, cfg: dict):
-    dna_df = pd.read_csv(csv_path, encoding='utf-8')
+    dna_df = pd.read_csv(csv_path, encoding='utf-8', sep='\t')
+
+    if 'dna' not in dna_df:
+        dna_df = pd.read_csv(csv_path, encoding='utf-8')
+
     dna_df.drop_duplicates(subset=['dna'], inplace=True)
 
     for metric in cfg['filter_dna']['training'].items():
