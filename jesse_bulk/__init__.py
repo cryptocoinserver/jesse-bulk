@@ -12,6 +12,12 @@ import yaml
 import datetime
 from jesse.research import backtest, get_candles
 import jesse.helpers as jh
+import traceback
+import logging
+
+log_format = "%(message)s"
+logging.basicConfig(filename='storage/logs/bulk.txt', level=logging.INFO, filemode='w',
+                    format=log_format)
 
 # create a Click group
 @click.group()
@@ -108,9 +114,16 @@ def refine(strategy_name: str, csv_path: str) -> None:
                     mp_args.append((key, config, route, extra_routes, candles, hp_dict, dna))
 
     with Pool() as pool:
-        print('Starting bulk refine.')
-        results = pool.starmap(backtest_with_info_key, mp_args)
-        print('Done.')
+        try:
+            print('Starting bulk backtest.')
+            results = pool.starmap(backtest_with_info_key, mp_args)
+            print('Done.')
+        except (KeyboardInterrupt, SystemExit):
+            pool.terminate()
+            pool.join()
+        else:
+            pool.close()
+            pool.join()
 
     old_name = pathlib.Path(csv_path).stem
     new_path = pathlib.Path(csv_path).with_stem(f'{old_name}-results')
@@ -179,9 +192,18 @@ def bulk(strategy_name: str) -> None:
                 mp_args.append((key, config, route, extra_routes, candles, None, None))
 
     with Pool() as pool:
-        print('Starting bulk backtest.')
-        results = pool.starmap(backtest_with_info_key, mp_args)
-        print('Done.')
+        try:
+            print('Starting bulk backtest.')
+            results = pool.starmap(backtest_with_info_key, mp_args)
+            print('Done.')
+        except (KeyboardInterrupt, SystemExit):
+            pool.terminate()
+            pool.join()
+        else:
+            pool.close()
+            pool.join()
+
+
 
     results_df = pd.DataFrame.from_dict(results, orient='columns')
 
@@ -222,7 +244,13 @@ def get_candles_with_cache(exchange: str, symbol: str, timeframe: str, start_dat
 
 def backtest_with_info_key(key, config, route, extra_routes, candles, hp_dict, dna):
     hp = jh.dna_to_hp(hp_dict, dna) if dna else None
-    backtest_data = backtest(config, route, extra_routes, candles, True, hp)
+
+    try:
+        backtest_data = backtest(config, route, extra_routes, candles, True, hp)
+    except Exception as e:
+        logging.error(f'backtest failed - key: {key}')
+        logging.error("".join(traceback.TracebackException.from_exception(e).format()))
+
 
     if backtest_data['total'] == 0:
         backtest_data = {'total': 0, 'total_winning_trades': None, 'total_losing_trades': None,
