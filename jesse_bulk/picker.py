@@ -4,8 +4,13 @@ import pathlib
 def filter_and_sort_dna_df(csv_path : str, cfg: dict):
     dna_df = pd.read_csv(csv_path, encoding='utf-8', sep='\t')
 
+    # old csv
     if 'dna' not in dna_df:
         dna_df = pd.read_csv(csv_path, encoding='utf-8')
+        dna_df.rename(columns={"training_log.win-rate": "training_log.win_rate",
+                               "training_log.PNL": "training_log.net_profit_percentage",
+                               "testing_log.win-rate": "testing_log.win_rate",
+                               "testing_log.PNL": "testing_log.net_profit_percentage"})
 
     dna_df.drop_duplicates(subset=['dna'], inplace=True)
 
