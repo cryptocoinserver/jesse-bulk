@@ -32,7 +32,7 @@ def filter_and_sort_dna_df(csv_path : str, cfg: dict):
         if max_value and max_value != 'None':
             dna_df.drop(dna_df[dna_df[f'testing_log.{key}'] > max_value].index, inplace = True)
 
-    dna_df.sort_values(by=[cfg['sort_by']], inplace=True)
+    dna_df.sort_values(by=[cfg['sort_by']], ascending=False, inplace=True)
     old_name = pathlib.Path(csv_path).stem
     new_path = pathlib.Path(csv_path).with_stem(f'{old_name}-picked')
     dna_df.to_csv(new_path, header=True, index=False, encoding='utf-8', sep='\t')
