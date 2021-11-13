@@ -97,7 +97,6 @@ def refine(strategy_name: str, csv_path: str) -> None:
                             'candles': get_candles_with_cache(
                                 extra_route['exchange'],
                                 extra_route['symbol'],
-                                extra_route['timeframe'],
                                 timespan['start_date'],
                                 timespan['finish_date'],
                             ),
@@ -110,7 +109,6 @@ def refine(strategy_name: str, csv_path: str) -> None:
                     'candles': get_candles_with_cache(
                         cfg['backtest-data']['exchange'],
                         symbol,
-                        timeframe,
                         timespan['start_date'],
                         timespan['finish_date'],
                     ),
@@ -182,7 +180,6 @@ def bulk(strategy_name: str) -> None:
                             'candles': get_candles_with_cache(
                                 extra_route['exchange'],
                                 extra_route['symbol'],
-                                extra_route['timeframe'],
                                 timespan['start_date'],
                                 timespan['finish_date'],
                             ),
@@ -195,7 +192,6 @@ def bulk(strategy_name: str) -> None:
                     'candles': get_candles_with_cache(
                         cfg['backtest-data']['exchange'],
                         symbol,
-                        timeframe,
                         timespan['start_date'],
                         timespan['finish_date'],
                     ),
@@ -241,18 +237,18 @@ def validate_cwd() -> None:
         exit()
 
 
-def get_candles_with_cache(exchange: str, symbol: str, timeframe: str, start_date: str, finish_date: str) -> np.ndarray:
+def get_candles_with_cache(exchange: str, symbol: str, start_date: str, finish_date: str) -> np.ndarray:
     path = pathlib.Path('storage/bulk')
     path.mkdir(parents=True, exist_ok=True)
 
-    cache_file_name = f"{exchange}-{symbol}-{timeframe}-{start_date}-{finish_date}.pickle"
+    cache_file_name = f"{exchange}-{symbol}-1m-{start_date}-{finish_date}.pickle"
     cache_file = pathlib.Path(f'storage/bulk/{cache_file_name}')
 
     if cache_file.is_file():
         with open(f'storage/bulk/{cache_file_name}', 'rb') as handle:
             candles = pickle.load(handle)
     else:
-        candles = get_candles(exchange, symbol, timeframe, start_date, finish_date)
+        candles = get_candles(exchange, symbol, '1m', start_date, finish_date)
         with open(f'storage/bulk/{cache_file_name}', 'wb') as handle:
             pickle.dump(candles, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
