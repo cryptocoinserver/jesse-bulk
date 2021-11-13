@@ -15,8 +15,8 @@ import jesse.helpers as jh
 import traceback
 import logging
 
-log_format = "%(message)s"
-logging.basicConfig(filename='storage/logs/bulk.txt', level=logging.INFO, filemode='w',
+log_format = '%(asctime)s %(key)s %(message)s'
+logging.basicConfig(filename='bulk_log.txt', level=logging.ERROR, filemode='w',
                     format=log_format)
 
 # create a Click group
@@ -74,6 +74,13 @@ def refine(strategy_name: str, csv_path: str) -> None:
         'warm_up_candles': cfg['backtest-data']['warm_up_candles']
     }
 
+    if len(cfg['backtest-data']['symbols']) == 0:
+        raise ValueError("You need to define a symbol. Check your config.")
+    if len(cfg['backtest-data']['timeframes']) == 0:
+        raise ValueError("You need to define a timeframe. Check your config.")
+    if len(cfg['backtest-data']['timespans']) == 0:
+        raise ValueError("You need to define a timespan. Check your config.")
+
     mp_args = []
     for symbol in cfg['backtest-data']['symbols']:
         for timeframe in cfg['backtest-data']['timeframes']:
@@ -81,22 +88,22 @@ def refine(strategy_name: str, csv_path: str) -> None:
                 timespan = timespan[1]
                 candles = {}
                 extra_routes = []
-
-                for extra_route in cfg['backtest-data']['extra_routes'].items():
-                    extra_route = extra_route[1]
-                    candles[jh.key(extra_route['exchange'], extra_route['symbol'])] = {
-                        'exchange': extra_route['exchange'],
-                        'symbol': extra_route['symbol'],
-                        'candles': get_candles_with_cache(
-                            extra_route['exchange'],
-                            extra_route['symbol'],
-                            extra_route['timeframe'],
-                            timespan['start_date'],
-                            timespan['finish_date'],
-                        ),
-                    }
-                    extra_routes.append({'exchange': extra_route['exchange'], 'symbol': extra_route['symbol'],
-                                         'timeframe': extra_route['timeframe']})
+                if len(extra_routes) != 0:
+                    for extra_route in cfg['backtest-data']['extra_routes'].items():
+                        extra_route = extra_route[1]
+                        candles[jh.key(extra_route['exchange'], extra_route['symbol'])] = {
+                            'exchange': extra_route['exchange'],
+                            'symbol': extra_route['symbol'],
+                            'candles': get_candles_with_cache(
+                                extra_route['exchange'],
+                                extra_route['symbol'],
+                                extra_route['timeframe'],
+                                timespan['start_date'],
+                                timespan['finish_date'],
+                            ),
+                        }
+                        extra_routes.append({'exchange': extra_route['exchange'], 'symbol': extra_route['symbol'],
+                                             'timeframe': extra_route['timeframe']})
                 candles[jh.key(cfg['backtest-data']['exchange'], symbol)] = {
                     'exchange': cfg['backtest-data']['exchange'],
                     'symbol': symbol,
@@ -112,9 +119,8 @@ def refine(strategy_name: str, csv_path: str) -> None:
                 route = [{'exchange': cfg['backtest-data']['exchange'], 'strategy': strategy_name, 'symbol': symbol,
                           'timeframe': timeframe}]
 
-                key = f'{symbol}-{timeframe}-{timespan["start_date"]}-{timespan["finish_date"]}'
-
                 for dna in dna_df['dna']:
+                    key = f'{symbol}-{timeframe}-{timespan["start_date"]}-{timespan["finish_date"]}-{dna}'
                     mp_args.append((key, config, route, extra_routes, candles, hp_dict, dna))
 
     with Pool() as pool:
@@ -125,8 +131,6 @@ def refine(strategy_name: str, csv_path: str) -> None:
         except (KeyboardInterrupt, SystemExit):
             pool.terminate()
             pool.join()
-        except Exception as e:
-            logging.error("".join(traceback.TracebackException.from_exception(e).format()))
         else:
             pool.close()
             pool.join()
@@ -155,6 +159,13 @@ def bulk(strategy_name: str) -> None:
         'warm_up_candles': cfg['backtest-data']['warm_up_candles']
     }
 
+    if len(cfg['backtest-data']['symbols']) == 0:
+        raise ValueError("You need to define a symbol. Check your config.")
+    if len(cfg['backtest-data']['timeframes']) == 0:
+        raise ValueError("You need to define a timeframe. Check your config.")
+    if len(cfg['backtest-data']['timespans']) == 0:
+        raise ValueError("You need to define a timespan. Check your config.")
+
     mp_args = []
     for symbol in cfg['backtest-data']['symbols']:
         for timeframe in cfg['backtest-data']['timeframes']:
@@ -162,22 +173,22 @@ def bulk(strategy_name: str) -> None:
                 timespan = timespan[1]
                 candles = {}
                 extra_routes = []
-
-                for extra_route in cfg['backtest-data']['extra_routes'].items():
-                    extra_route = extra_route[1]
-                    candles[jh.key(extra_route['exchange'], extra_route['symbol'])] = {
-                        'exchange': extra_route['exchange'],
-                        'symbol': extra_route['symbol'],
-                        'candles': get_candles_with_cache(
-                            extra_route['exchange'],
-                            extra_route['symbol'],
-                            extra_route['timeframe'],
-                            timespan['start_date'],
-                            timespan['finish_date'],
-                        ),
-                    }
-                    extra_routes.append({'exchange': extra_route['exchange'], 'symbol': extra_route['symbol'],
-                                         'timeframe': extra_route['timeframe']})
+                if len(extra_routes) != 0:
+                    for extra_route in cfg['backtest-data']['extra_routes'].items():
+                        extra_route = extra_route[1]
+                        candles[jh.key(extra_route['exchange'], extra_route['symbol'])] = {
+                            'exchange': extra_route['exchange'],
+                            'symbol': extra_route['symbol'],
+                            'candles': get_candles_with_cache(
+                                extra_route['exchange'],
+                                extra_route['symbol'],
+                                extra_route['timeframe'],
+                                timespan['start_date'],
+                                timespan['finish_date'],
+                            ),
+                        }
+                        extra_routes.append({'exchange': extra_route['exchange'], 'symbol': extra_route['symbol'],
+                                             'timeframe': extra_route['timeframe']})
                 candles[jh.key(cfg['backtest-data']['exchange'], symbol)] = {
                     'exchange': cfg['backtest-data']['exchange'],
                     'symbol': symbol,
@@ -205,8 +216,6 @@ def bulk(strategy_name: str) -> None:
         except (KeyboardInterrupt, SystemExit):
             pool.terminate()
             pool.join()
-        except Exception as e:
-            logging.error("".join(traceback.TracebackException.from_exception(e).format()))
         else:
             pool.close()
             pool.join()
@@ -256,8 +265,7 @@ def backtest_with_info_key(key, config, route, extra_routes, candles, hp_dict, d
     try:
         backtest_data = backtest(config, route, extra_routes, candles, True, hp)
     except Exception as e:
-        logging.error(f'backtest failed - key: {key}')
-        logging.error("".join(traceback.TracebackException.from_exception(e).format()))
+        logging.error("".join(traceback.TracebackException.from_exception(e).format()), extra={'key': key})
         # Re-raise the original exception so the Pool worker can
         # clean up
         raise
