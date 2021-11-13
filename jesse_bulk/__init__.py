@@ -121,6 +121,8 @@ def refine(strategy_name: str, csv_path: str) -> None:
         except (KeyboardInterrupt, SystemExit):
             pool.terminate()
             pool.join()
+        except Exception as e:
+            logging.error("".join(traceback.TracebackException.from_exception(e).format()))
         else:
             pool.close()
             pool.join()
@@ -199,6 +201,8 @@ def bulk(strategy_name: str) -> None:
         except (KeyboardInterrupt, SystemExit):
             pool.terminate()
             pool.join()
+        except Exception as e:
+            logging.error("".join(traceback.TracebackException.from_exception(e).format()))
         else:
             pool.close()
             pool.join()
@@ -250,6 +254,9 @@ def backtest_with_info_key(key, config, route, extra_routes, candles, hp_dict, d
     except Exception as e:
         logging.error(f'backtest failed - key: {key}')
         logging.error("".join(traceback.TracebackException.from_exception(e).format()))
+        # Re-raise the original exception so the Pool worker can
+        # clean up
+        raise
 
 
     if backtest_data['total'] == 0:
