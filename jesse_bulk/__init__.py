@@ -129,6 +129,7 @@ def refine(strategy_name: str, csv_path: str) -> None:
         except (KeyboardInterrupt, SystemExit):
             pool.terminate()
             pool.join()
+            exit()
         else:
             pool.close()
             pool.join()
@@ -212,6 +213,7 @@ def bulk(strategy_name: str) -> None:
         except (KeyboardInterrupt, SystemExit):
             pool.terminate()
             pool.join()
+            exit()
         else:
             pool.close()
             pool.join()
