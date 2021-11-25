@@ -22,6 +22,7 @@ The bulk_config.yml should be self-explainatory.
 ## Warning
 - warm-up-candles are taken from the candles passed. So the actual start_date is different then it would be during a normal backtest.
 - extra route candles are added to all backtests - even though they might not be needed by the symbol. 
+
 This could be improved.
 
 
