@@ -7,7 +7,8 @@ DESCRIPTION = "Bulk backtesting for jesse"
 REQUIRED_PACKAGES = [
     'jesse',
     'pyyaml',
-    'joblib'
+    'joblib',
+    'psutil'
 ]
 
 with open("README.md", "r", encoding="utf-8") as f:
