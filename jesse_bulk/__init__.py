@@ -15,10 +15,18 @@ import pkg_resources
 import yaml
 from jesse.research import backtest, get_candles
 
-log_format = '%(asctime)s %(key)s %(message)s'
-logging.basicConfig(filename='bulk_log.txt', level=logging.ERROR, filemode='w',
-                    format=log_format)
 
+def start_logger_if_necessary():
+    logger = logging.getLogger("mylogger")
+    if len(logger.handlers) == 0:
+        logger.setLevel(logging.ERROR)
+        sh = logging.StreamHandler()
+        sh.setFormatter(logging.Formatter('%(asctime)s %(key)s %(message)s'))
+        fh = logging.FileHandler('bulk.log', mode='w')
+        fh.setFormatter(logging.Formatter('%(asctime)s %(key)s %(message)s'))
+        logger.addHandler(sh)
+        logger.addHandler(fh)
+    return logger
 
 # create a Click group
 @click.group()
@@ -251,15 +259,18 @@ def get_candles_with_cache(exchange: str, symbol: str, start_date: str, finish_d
 def backtest_with_info_key(key, config, route, extra_routes, candles, hp_dict, dna):
     hp = jh.dna_to_hp(hp_dict, dna) if dna else None
 
+    got_exception = False
+
     try:
         backtest_data = backtest(config, route, extra_routes, candles, True, hp)
     except Exception as e:
-        logging.error("".join(traceback.TracebackException.from_exception(e).format()), extra={'key': key})
+        logger = start_logger_if_necessary()
+        logger.error("".join(traceback.TracebackException.from_exception(e).format()), extra={'key': key})
         # Re-raise the original exception so the Pool worker can
         # clean up
-        raise
+        got_exception = True
 
-    if backtest_data['total'] == 0:
+    if got_exception or backtest_data['total'] == 0:
         backtest_data = {'total': 0, 'total_winning_trades': None, 'total_losing_trades': None,
                          'starting_balance': None, 'finishing_balance': None, 'win_rate': None,
                          'ratio_avg_win_loss': None, 'longs_count': None, 'longs_percentage': None,
@@ -273,6 +284,8 @@ def backtest_with_info_key(key, config, route, extra_routes, candles, hp_dict, d
                          'smart_sortino': None, 'total_open_trades': None, 'open_pl': None, 'winning_streak': None,
                          'losing_streak': None, 'largest_losing_trade': None, 'largest_winning_trade': None,
                          'current_streak': None}
+        if got_exception:
+            backtest_data['total'] = "error"
 
     return {**{'key': key}, **backtest_data}
 
