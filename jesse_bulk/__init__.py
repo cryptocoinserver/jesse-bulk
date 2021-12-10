@@ -1,23 +1,24 @@
+import datetime
+import logging
 import os
 import pathlib
 import pickle
 import shutil
-from multiprocessing import Pool
+import traceback
 
 import click
+import jesse.helpers as jh
+import joblib
 import numpy as np
 import pandas as pd
 import pkg_resources
 import yaml
-import datetime
 from jesse.research import backtest, get_candles
-import jesse.helpers as jh
-import traceback
-import logging
 
 log_format = '%(asctime)s %(key)s %(message)s'
 logging.basicConfig(filename='bulk_log.txt', level=logging.ERROR, filemode='w',
                     format=log_format)
+
 
 # create a Click group
 @click.group()
@@ -121,18 +122,14 @@ def refine(strategy_name: str, csv_path: str) -> None:
                     key = f'{symbol}-{timeframe}-{timespan["start_date"]}-{timespan["finish_date"]}-{dna}'
                     mp_args.append((key, config, route, extra_routes, candles, hp_dict, dna))
 
-    with Pool() as pool:
-        try:
-            print('Starting bulk backtest.')
-            results = pool.starmap(backtest_with_info_key, mp_args)
-            print('Done.')
-        except (KeyboardInterrupt, SystemExit):
-            pool.terminate()
-            pool.join()
-            exit()
-        else:
-            pool.close()
-            pool.join()
+    n_jobs = joblib.cpu_count() if cfg['n_jobs'] == -1 else cfg['n_jobs']
+
+    print('Starting bulk backtest.')
+    parallel = joblib.Parallel(n_jobs, verbose=10, max_nbytes=None)
+    results = parallel(
+        joblib.delayed(backtest_with_info_key)(*args)
+        for args in mp_args
+    )
 
     old_name = pathlib.Path(csv_path).stem
     new_path = pathlib.Path(csv_path).with_stem(f'{old_name}-results')
@@ -205,20 +202,14 @@ def bulk(strategy_name: str) -> None:
 
                 mp_args.append((key, config, route, extra_routes, candles, None, None))
 
-    with Pool() as pool:
-        try:
-            print('Starting bulk backtest.')
-            results = pool.starmap(backtest_with_info_key, mp_args)
-            print('Done.')
-        except (KeyboardInterrupt, SystemExit):
-            pool.terminate()
-            pool.join()
-            exit()
-        else:
-            pool.close()
-            pool.join()
+    n_jobs = joblib.cpu_count() if cfg['n_jobs'] == -1 else cfg['n_jobs']
 
-
+    print('Starting bulk backtest.')
+    parallel = joblib.Parallel(n_jobs, verbose=10, max_nbytes=None)
+    results = parallel(
+        joblib.delayed(backtest_with_info_key)(*args)
+        for args in mp_args
+    )
 
     results_df = pd.DataFrame.from_dict(results, orient='columns')
 
@@ -267,7 +258,6 @@ def backtest_with_info_key(key, config, route, extra_routes, candles, hp_dict, d
         # Re-raise the original exception so the Pool worker can
         # clean up
         raise
-
 
     if backtest_data['total'] == 0:
         backtest_data = {'total': 0, 'total_winning_trades': None, 'total_losing_trades': None,

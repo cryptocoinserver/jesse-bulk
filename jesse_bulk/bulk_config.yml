@@ -1,6 +1,9 @@
 # syntax: training.win_rate or testing.total
 sort_by: 'training.win_rate'
 
+# -1 all cpu
+n_jobs: -1
+
 filter_dna:
   training:
     total:
