@@ -97,7 +97,7 @@ def refine(strategy_name: str, csv_path: str) -> None:
                 timespan = timespan[1]
                 candles = {}
                 extra_routes = []
-                if len(extra_routes) != 0:
+                if len(cfg['backtest-data']['extra_routes']) != 0:
                     for extra_route in cfg['backtest-data']['extra_routes'].items():
                         extra_route = extra_route[1]
                         candles[jh.key(extra_route['exchange'], extra_route['symbol'])] = {
@@ -177,7 +177,7 @@ def bulk(strategy_name: str) -> None:
                 timespan = timespan[1]
                 candles = {}
                 extra_routes = []
-                if len(extra_routes) != 0:
+                if len(cfg['backtest-data']['extra_routes']) != 0:
                     for extra_route in cfg['backtest-data']['extra_routes'].items():
                         extra_route = extra_route[1]
                         candles[jh.key(extra_route['exchange'], extra_route['symbol'])] = {
