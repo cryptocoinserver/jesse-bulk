@@ -262,7 +262,7 @@ def backtest_with_info_key(key, config, route, extra_routes, candles, hp_dict, d
     got_exception = False
 
     try:
-        backtest_data = backtest(config, route, extra_routes, candles, True, hp)
+        backtest_data = backtest(config, route, extra_routes, candles, hp)
     except Exception as e:
         logger = start_logger_if_necessary()
         logger.error("".join(traceback.TracebackException.from_exception(e).format()), extra={'key': key})
